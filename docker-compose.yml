@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  master:
+    build: ./services/master
+    container_name: meta-ads-master
+    ports:
+      - "8000:8000"
+    environment:
+      - KIE_API_KEY=${KIE_API_KEY}
+      - FB_ACCESS_TOKEN=${FB_ACCESS_TOKEN}
+      - AD_ACCOUNT_ID=${AD_ACCOUNT_ID}
+      - PAGE_ID=${PAGE_ID}
+      - IMAGE_SERVICE_URL=http://image-generator:8001
+      - PERFORMANCE_SERVICE_URL=http://performance-analyzer:8003
+      - CAMPAIGN_SERVICE_URL=http://campaign-manager:8004
+      - DB_PATH=/data/meta_ads_performance.db
+    volumes:
+      - ./data:/data
+      - ./services/shared_models.py:/app/shared_models.py
+    depends_on:
+      - image-generator
+      - performance-analyzer
+      - campaign-manager
+    networks:
+      - meta-ads-network
+    restart: unless-stopped
+
+  image-generator:
+    build: ./services/image-generator
+    container_name: meta-ads-image-generator
+    ports:
+      - "8001:8001"
+    environment:
+      - KIE_API_KEY=${KIE_API_KEY}
+    volumes:
+      - ./services/shared_models.py:/app/shared_models.py
+    networks:
+      - meta-ads-network
+    restart: unless-stopped
+
+  performance-analyzer:
+    build: ./services/performance-analyzer
+    container_name: meta-ads-performance-analyzer
+    ports:
+      - "8003:8003"
+    environment:
+      - DB_PATH=/data/meta_ads_performance.db
+    volumes:
+      - ./data:/data
+      - ./services/shared_models.py:/app/shared_models.py
+    networks:
+      - meta-ads-network
+    restart: unless-stopped
+
+  campaign-manager:
+    build: ./services/campaign-manager
+    container_name: meta-ads-campaign-manager
+    ports:
+      - "8004:8004"
+    environment:
+      - FB_ACCESS_TOKEN=${FB_ACCESS_TOKEN}
+      - AD_ACCOUNT_ID=${AD_ACCOUNT_ID}
+      - PAGE_ID=${PAGE_ID}
+    volumes:
+      - ./services/shared_models.py:/app/shared_models.py
+    networks:
+      - meta-ads-network
+    restart: unless-stopped
+
+networks:
+  meta-ads-network:
+    driver: bridge
+
+volumes:
+  data:
+
