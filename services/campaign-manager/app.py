@@ -126,15 +126,15 @@ class CampaignManagerService:
             print(f"❌ Error uploading image: {str(e)}")
             return None
     
-    def create_ad_creative(self, hook_data: HookData, image_hash: str) -> Optional[str]:
-        """Create ad creative"""
+    def create_ad_creative(self, hook_data: HookData, image_url: str) -> Optional[str]:
+        """Create ad creative using image URL directly"""
         try:
             url = f"{self.graph_api_base}/{self.ad_account_id}/adcreatives"
             
             object_story_spec = {
                 "page_id": self.fb_page_id,
                 "link_data": {
-                    "image_hash": image_hash,
+                    "picture": image_url,
                     "link": LANDING_PAGE_URL,
                     "message": hook_data.hook,
                     "call_to_action": {
@@ -204,13 +204,8 @@ class CampaignManagerService:
         if not adset_id:
             return {"success": False, "error": "Failed to create ad set"}
         
-        # Step 3: Upload image
-        image_hash = self.upload_image(image_url)
-        if not image_hash:
-            return {"success": False, "error": "Failed to upload image"}
-        
-        # Step 4: Create ad creative
-        creative_id = self.create_ad_creative(hook_data, image_hash)
+        # Step 3: Create ad creative (using image URL directly)
+        creative_id = self.create_ad_creative(hook_data, image_url)
         if not creative_id:
             return {"success": False, "error": "Failed to create ad creative"}
         
