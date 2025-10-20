@@ -289,6 +289,7 @@ OUTPUT: High-quality 9:16 vertical question-style image"""
             # Create task
             create_payload = {
                 "taskType": "nano_banana",
+                "model": "nano_banana",
                 "prompt": prompt,
                 "aspectRatio": "9:16"
             }
