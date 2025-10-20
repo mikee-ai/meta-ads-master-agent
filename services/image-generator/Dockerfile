@@ -6,8 +6,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy shared models
-COPY ../shared_models.py /app/shared_models.py
+# Copy shared models will be mounted via volume
 
 # Copy application
 COPY app.py .
