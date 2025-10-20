@@ -168,10 +168,11 @@ class CampaignManagerService:
         try:
             url = f"{self.graph_api_base}/{self.ad_account_id}/ads"
             
+            import json
             payload = {
                 "name": f"Ad - {hook_data.name}",
                 "adset_id": adset_id,
-                "creative": {"creative_id": creative_id},
+                "creative": json.dumps({"creative_id": creative_id}),
                 "status": "ACTIVE",
                 "access_token": self.fb_access_token
             }
