@@ -1,5 +1,5 @@
 """
-Image Generator Microservice - UPDATED
+Image Generator Microservice - FIXED WITH CORRECT NANO BANANA API
 Generates scroll-stopping ad images using Kie.ai Nano Banana
 NOW WITH MULTIPLE CREATIVE STYLES: MrBeast, Meme, Minimalist, Screenshot, etc.
 """
@@ -7,6 +7,7 @@ NOW WITH MULTIPLE CREATIVE STYLES: MrBeast, Meme, Minimalist, Screenshot, etc.
 import os
 import sys
 import time
+import json
 import random
 import requests
 from typing import Optional
@@ -19,175 +20,140 @@ from shared_models import HookData, CreativeAsset, CreativeType, CREATIVE_STYLE_
 
 app = FastAPI(title="Image Generator Service - Multi-Style")
 
-
-class ImageRequest(BaseModel):
-    hook_data: dict
-
-
-class ImageResponse(BaseModel):
-    success: bool
-    image_url: Optional[str] = None
-    cost: float = 0.0
-    creative_style: Optional[str] = None
-    error: Optional[str] = None
-
-
-class ImageGeneratorService:
+class ImageGenerator:
     def __init__(self):
         self.kie_api_key = os.getenv("KIE_API_KEY")
         if not self.kie_api_key:
-            raise ValueError("KIE_API_KEY environment variable is required")
+            raise ValueError("KIE_API_KEY environment variable not set")
         
+        # Correct Nano Banana API endpoints
         self.create_task_url = "https://api.kie.ai/api/v1/jobs/createTask"
         self.query_task_url = "https://api.kie.ai/api/v1/jobs/recordInfo"
     
     def generate_mrbeast_prompt(self, hook_data: HookData) -> str:
         """Generate MrBeast-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["mrbeast"]
-        gradient = random.choice(config["gradients"])
+        bg = random.choice(config["backgrounds"])
         
-        return f"""Professional social media ad, 9:16 vertical, MrBeast-style scroll-stopping design:
-
-SAFE AREA REQUIREMENTS:
-- Top margin: 10% of height (no text in top 10%)
-- Bottom margin: 10% of height (no text in bottom 10%)
-- Side margins: 8% of width (no text near edges)
+        return f"""MrBeast-style clickbait thumbnail, 9:16 vertical:
 
 DESIGN SPECIFICATIONS:
-- Dramatic diagonal gradient from {gradient[0]} (top-left) through {gradient[1]} (center) to {gradient[2]} (bottom-right)
+- {bg} background
 - {config["font"]}
-- Text in center safe zone only
-- {config["text_color"]}
-- {config["effects"]}
+- High contrast, eye-catching design
+- Professional quality, scroll-stopping
 
-TEXT CONTENT (centered, vertically stacked):
+TEXT CONTENT (large, bold, centered):
 {hook_data.primary_text}
 
 VISUAL STYLE:
 - {config["style_notes"]}
-- Clean, modern, professional
-- High energy and urgency
-- Maximum readability
-- Scroll-stopping impact
-- Safe for Meta Ads review
+- Energetic and attention-grabbing
+- Mobile-optimized 9:16 format
+- Clear, readable text
 
-OUTPUT: High-quality 9:16 vertical image, optimized for mobile feed"""
-    
+OUTPUT: High-quality 9:16 vertical image"""
+
     def generate_meme_prompt(self, hook_data: HookData) -> str:
         """Generate meme-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["meme"]
+        bg = random.choice(config["backgrounds"])
         
-        return f"""Meme-style social media ad, 9:16 vertical format:
+        return f"""Internet meme format, 9:16 vertical:
 
 DESIGN SPECIFICATIONS:
-- {config["background"]} background
-- {config["font"]} font
-- {config["text_color"]}
-- {config["layout"]}
+- {bg} background
+- {config["font"]}
+- Classic meme aesthetic
+- Relatable and shareable
 
-TEXT CONTENT:
+TEXT CONTENT (meme format):
 {hook_data.primary_text}
 
 VISUAL STYLE:
 - {config["style_notes"]}
-- Relatable and shareable
-- Classic internet meme aesthetic
-- High contrast for readability
+- Authentic meme look
 - Mobile-optimized 9:16 format
-- Safe for Meta Ads review
+- Instantly recognizable format
 
-OUTPUT: High-quality 9:16 vertical meme-style image"""
-    
+OUTPUT: High-quality 9:16 vertical meme image"""
+
     def generate_minimalist_prompt(self, hook_data: HookData) -> str:
         """Generate minimalist-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["minimalist"]
+        bg = random.choice(config["backgrounds"])
         
-        colors = ["white", "black", "deep blue (#1565c0)", "dark gray (#2c2c2c)"]
-        bg_color = random.choice(colors)
-        text_color = "black" if bg_color == "white" else "white"
-        
-        return f"""Minimalist social media ad, 9:16 vertical, Apple-style design:
+        return f"""Minimalist design, 9:16 vertical:
 
 DESIGN SPECIFICATIONS:
-- {bg_color} solid background
-- {config["font"]} font
-- {text_color} text for maximum contrast
-- {config["layout"]}
-- Lots of negative space
+- {bg} background
+- {config["font"]}
+- Clean, Apple-inspired aesthetic
+- Maximum white space
 
-TEXT CONTENT (centered):
+TEXT CONTENT (minimal, elegant):
 {hook_data.primary_text}
 
 VISUAL STYLE:
 - {config["style_notes"]}
 - Ultra-clean and professional
-- Premium aesthetic
-- Maximum readability
-- Sophisticated and modern
-- Safe for Meta Ads review
+- Mobile-optimized 9:16 format
+- Sophisticated simplicity
 
 OUTPUT: High-quality 9:16 vertical minimalist image"""
-    
+
     def generate_screenshot_prompt(self, hook_data: HookData) -> str:
         """Generate screenshot-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["screenshot"]
+        bg = random.choice(config["backgrounds"])
         
-        return f"""Fake app dashboard screenshot, 9:16 vertical, realistic UI design:
+        return f"""Fake screenshot/dashboard, 9:16 vertical:
 
 DESIGN SPECIFICATIONS:
-- {config["background"]}
-- {config["elements"]} showing impressive metrics
+- {bg} background
 - {config["font"]}
-- Modern app UI design
-- Looks like a real Meta Ads dashboard or analytics app
+- Realistic UI elements
+- Professional dashboard look
 
-TEXT CONTENT (as UI elements and headline):
-{hook_data.primary_text}
-
-VISUAL ELEMENTS:
-- Graphs showing upward trends
-- Green checkmarks and positive metrics
-- Professional dashboard layout
-- Mobile app interface style
-- {config["style_notes"]}
-
-OUTPUT: High-quality 9:16 vertical screenshot-style image"""
-    
-    def generate_before_after_prompt(self, hook_data: HookData) -> str:
-        """Generate before/after-style prompt"""
-        config = CREATIVE_STYLE_CONFIGS["before_after"]
-        
-        return f"""Before/After comparison ad, 9:16 vertical split-screen:
-
-DESIGN SPECIFICATIONS:
-- {config["layout"]}
-- {config["labels"]} at top of each side
-- {config["colors"]}
-- Clear dividing line in center
-
-TEXT CONTENT:
+TEXT CONTENT (as UI text):
 {hook_data.primary_text}
 
 VISUAL STYLE:
 - {config["style_notes"]}
-- Left side: dull, stressed, manual work
-- Right side: bright, automated, AI-powered
-- Dramatic visual difference
+- Authentic screenshot appearance
 - Mobile-optimized 9:16 format
+- Credible and professional
 
-OUTPUT: High-quality 9:16 vertical before/after comparison image"""
-    
+OUTPUT: High-quality 9:16 vertical screenshot-style image"""
+
+    def generate_before_after_prompt(self, hook_data: HookData) -> str:
+        """Generate before/after-style prompt"""
+        config = CREATIVE_STYLE_CONFIGS["before_after"]
+        bg = random.choice(config["backgrounds"])
+        
+        return f"""Before/After transformation, 9:16 vertical:
+
+DESIGN SPECIFICATIONS:
+- {bg} background split vertically
+- {config["font"]}
+- Clear before/after division
+- Visual transformation story
+
+TEXT CONTENT (split across before/after):
+{hook_data.primary_text}
+
+VISUAL STYLE:
+- {config["style_notes"]}
+- Dramatic transformation
+- Mobile-optimized 9:16 format
+- Clear visual contrast
+
+OUTPUT: High-quality 9:16 vertical before/after image"""
+
     def generate_testimonial_prompt(self, hook_data: HookData) -> str:
         """Generate testimonial-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["testimonial"]
-        
-        gradients = [
-            "blue to purple gradient",
-            "teal to blue gradient",
-            "orange to red gradient",
-            "solid professional blue"
-        ]
-        bg = random.choice(gradients)
+        bg = random.choice(config["backgrounds"])
         
         return f"""Testimonial quote card, 9:16 vertical:
 
@@ -208,55 +174,55 @@ VISUAL STYLE:
 - Mobile-optimized 9:16 format
 
 OUTPUT: High-quality 9:16 vertical testimonial card"""
-    
+
     def generate_urgency_prompt(self, hook_data: HookData) -> str:
         """Generate urgency-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["urgency"]
+        bg = random.choice(config["backgrounds"])
         
-        return f"""Urgency/scarcity ad, 9:16 vertical, attention-grabbing:
+        return f"""Urgency/scarcity alert, 9:16 vertical:
 
 DESIGN SPECIFICATIONS:
-- {config["colors"]} color scheme
-- {config["elements"]}
+- {bg} background
 - {config["font"]}
 - Alert/warning aesthetic
+- Time-sensitive design
 
-TEXT CONTENT:
+TEXT CONTENT (urgent message):
 {hook_data.primary_text}
 
 VISUAL STYLE:
 - {config["style_notes"]}
-- Creates immediate action
-- High contrast and bold
-- Attention-grabbing design
+- High urgency visual cues
 - Mobile-optimized 9:16 format
+- Attention-demanding
 
-OUTPUT: High-quality 9:16 vertical urgency-style image"""
-    
+OUTPUT: High-quality 9:16 vertical urgency image"""
+
     def generate_question_prompt(self, hook_data: HookData) -> str:
         """Generate question-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["question"]
+        bg = random.choice(config["backgrounds"])
         
-        return f"""Question-style ad, 9:16 vertical, thought-provoking:
+        return f"""Provocative question card, 9:16 vertical:
 
 DESIGN SPECIFICATIONS:
-- {config["background"]}
+- {bg} background
 - {config["font"]}
-- {config["punctuation"]} as visual element
-- Clean and readable
+- Question mark visual element
+- Thought-provoking design
 
 TEXT CONTENT (as question):
 {hook_data.primary_text}
 
 VISUAL STYLE:
 - {config["style_notes"]}
-- Makes viewer pause and think
-- Clean and professional
-- High readability
+- Curiosity-inducing
 - Mobile-optimized 9:16 format
+- Engaging and interactive feel
 
-OUTPUT: High-quality 9:16 vertical question-style image"""
-    
+OUTPUT: High-quality 9:16 vertical question image"""
+
     def generate_prompt(self, hook_data: HookData) -> str:
         """Generate prompt based on creative style"""
         style = hook_data.creative_style
@@ -282,16 +248,18 @@ OUTPUT: High-quality 9:16 vertical question-style image"""
             return self.generate_mrbeast_prompt(hook_data)
     
     def generate_image(self, hook_data: HookData) -> Optional[str]:
-        """Generate image using Kie.ai Nano Banana"""
+        """Generate image using Kie.ai Nano Banana - CORRECT API FORMAT"""
         prompt = self.generate_prompt(hook_data)
         
         try:
-            # Create task
+            # Create task with CORRECT Nano Banana API format
             create_payload = {
-                "taskType": "nano_banana",
-                "model": "nano_banana",
-                "prompt": prompt,
-                "aspectRatio": "9:16"
+                "model": "google/nano-banana",
+                "input": {
+                    "prompt": prompt,
+                    "output_format": "png",
+                    "image_size": "9:16"
+                }
             }
             
             headers = {
@@ -299,6 +267,7 @@ OUTPUT: High-quality 9:16 vertical question-style image"""
                 "Content-Type": "application/json"
             }
             
+            print(f"🔄 Creating Nano Banana task (style: {hook_data.creative_style})...")
             create_response = requests.post(
                 self.create_task_url,
                 json=create_payload,
@@ -312,94 +281,111 @@ OUTPUT: High-quality 9:16 vertical question-style image"""
                 return None
             
             task_data = create_response.json()
-            if not task_data.get("success"):
+            print(f"📝 Create task response: {task_data}")
+            
+            if task_data.get("code") != 200:
                 print(f"❌ Task creation failed: {task_data}")
                 return None
             
-            record_id = task_data.get("data", {}).get("recordId")
-            if not record_id:
-                print(f"❌ No recordId in response: {task_data}")
+            task_id = task_data.get("data", {}).get("taskId")
+            if not task_id:
+                print(f"❌ No taskId in response: {task_data}")
                 return None
             
-            print(f"✅ Task created: {record_id} (style: {hook_data.creative_style})")
+            print(f"✅ Task created: {task_id} (style: {hook_data.creative_style})")
             
-            # Poll for completion
+            # Poll for completion using GET with taskId parameter
             max_attempts = 60
             for attempt in range(max_attempts):
                 time.sleep(5)
                 
-                query_payload = {"recordId": record_id}
-                query_response = requests.post(
-                    self.query_task_url,
-                    json=query_payload,
+                query_url = f"{self.query_task_url}?taskId={task_id}"
+                query_response = requests.get(
+                    query_url,
                     headers=headers,
                     timeout=30
                 )
                 
                 if query_response.status_code != 200:
+                    print(f"⏳ Attempt {attempt + 1}/{max_attempts}: Status check failed")
                     continue
                 
                 result = query_response.json()
-                if not result.get("success"):
+                if result.get("code") != 200:
+                    print(f"⏳ Attempt {attempt + 1}/{max_attempts}: Waiting...")
                     continue
                 
                 data = result.get("data", {})
-                status = data.get("status")
+                state = data.get("state")
                 
-                if status == "SUCCESS":
-                    image_url = data.get("resultUrl")
-                    if image_url:
-                        print(f"✅ Image generated ({hook_data.creative_style}): {image_url}")
-                        return image_url
-                elif status == "FAILED":
-                    print(f"❌ Generation failed: {data.get('errorMsg')}")
+                if state == "success":
+                    # Parse resultJson to get image URL
+                    result_json_str = data.get("resultJson")
+                    if result_json_str:
+                        result_json = json.loads(result_json_str)
+                        result_urls = result_json.get("resultUrls", [])
+                        if result_urls:
+                            image_url = result_urls[0]
+                            print(f"✅ Image generated: {image_url}")
+                            return image_url
+                
+                elif state == "fail":
+                    fail_msg = data.get("failMsg", "Unknown error")
+                    print(f"❌ Generation failed: {fail_msg}")
                     return None
                 
-                print(f"⏳ Waiting... ({attempt + 1}/{max_attempts})")
+                print(f"⏳ Attempt {attempt + 1}/{max_attempts}: State = {state}")
             
-            print(f"❌ Timeout waiting for image generation")
+            print(f"❌ Timeout after {max_attempts} attempts")
             return None
             
         except Exception as e:
-            print(f"❌ Error generating image: {str(e)}")
+            print(f"❌ Exception during image generation: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return None
 
-
-# Initialize service
-service = ImageGeneratorService()
-
-
-@app.post("/generate", response_model=ImageResponse)
-async def generate_image_endpoint(request: ImageRequest):
-    """Generate image from hook data with specified creative style"""
-    try:
-        hook_data = HookData(**request.hook_data)
-        
-        image_url = service.generate_image(hook_data)
-        
-        if image_url:
-            return ImageResponse(
-                success=True,
-                image_url=image_url,
-                cost=0.02,  # $0.02 per Nano Banana image
-                creative_style=hook_data.creative_style
-            )
-        else:
-            return ImageResponse(
-                success=False,
-                error="Failed to generate image",
-                creative_style=hook_data.creative_style
-            )
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+# Global generator instance
+generator = ImageGenerator()
 
 @app.get("/health")
-async def health_check():
-    """Health check endpoint"""
+def health_check():
     return {"status": "healthy", "service": "image-generator-multi-style"}
 
+class GenerateRequest(BaseModel):
+    hook_data: dict
+
+@app.post("/generate")
+def generate_image(request: GenerateRequest):
+    """Generate image for a hook"""
+    try:
+        # Convert dict to HookData object
+        hook_data = HookData(**request.hook_data)
+        
+        # Generate image
+        image_url = generator.generate_image(hook_data)
+        
+        if image_url:
+            return {
+                "success": True,
+                "image_url": image_url,
+                "cost": 0.02,  # Nano Banana cost
+                "creative_style": hook_data.creative_style
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to generate image"
+            }
+    
+    except Exception as e:
+        print(f"❌ Error in generate endpoint: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 if __name__ == "__main__":
     import uvicorn
