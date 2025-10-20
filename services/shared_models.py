@@ -330,6 +330,7 @@ CREATIVE_STYLE_CONFIGS = {
         "style_notes": "Looks like a real app/dashboard screenshot"
     },
     "before_after": {
+        "background": "Split screen - red/dull left side, green/bright right side",
         "layout": "Split screen - before on left, after on right",
         "labels": "BEFORE / AFTER labels",
         "colors": "Red/dull for before, green/bright for after",
@@ -342,6 +343,7 @@ CREATIVE_STYLE_CONFIGS = {
         "style_notes": "Social proof, quote card style"
     },
     "urgency": {
+        "background": "Red to orange gradient, alert colors",
         "colors": "Red, orange, yellow (alert colors)",
         "elements": "Arrows, exclamation marks, countdown vibes",
         "font": "Bold, attention-grabbing",
