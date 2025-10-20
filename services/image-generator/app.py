@@ -33,7 +33,7 @@ class ImageGenerator:
     def generate_mrbeast_prompt(self, hook_data: HookData) -> str:
         """Generate MrBeast-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["mrbeast"]
-        bg = random.choice(config["backgrounds"])
+        bg = random.choice(config["gradients"])
         
         return f"""MrBeast-style clickbait thumbnail, 9:16 vertical:
 
@@ -57,7 +57,7 @@ OUTPUT: High-quality 9:16 vertical image"""
     def generate_meme_prompt(self, hook_data: HookData) -> str:
         """Generate meme-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["meme"]
-        bg = random.choice(config["backgrounds"])
+        bg = config["background"]
         
         return f"""Internet meme format, 9:16 vertical:
 
@@ -81,7 +81,7 @@ OUTPUT: High-quality 9:16 vertical meme image"""
     def generate_minimalist_prompt(self, hook_data: HookData) -> str:
         """Generate minimalist-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["minimalist"]
-        bg = random.choice(config["backgrounds"])
+        bg = config["background"]
         
         return f"""Minimalist design, 9:16 vertical:
 
@@ -105,7 +105,7 @@ OUTPUT: High-quality 9:16 vertical minimalist image"""
     def generate_screenshot_prompt(self, hook_data: HookData) -> str:
         """Generate screenshot-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["screenshot"]
-        bg = random.choice(config["backgrounds"])
+        bg = config["background"]
         
         return f"""Fake screenshot/dashboard, 9:16 vertical:
 
@@ -129,7 +129,7 @@ OUTPUT: High-quality 9:16 vertical screenshot-style image"""
     def generate_before_after_prompt(self, hook_data: HookData) -> str:
         """Generate before/after-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["before_after"]
-        bg = random.choice(config["backgrounds"])
+        bg = config["background"]
         
         return f"""Before/After transformation, 9:16 vertical:
 
@@ -153,7 +153,7 @@ OUTPUT: High-quality 9:16 vertical before/after image"""
     def generate_testimonial_prompt(self, hook_data: HookData) -> str:
         """Generate testimonial-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["testimonial"]
-        bg = random.choice(config["backgrounds"])
+        bg = config["background"]
         
         return f"""Testimonial quote card, 9:16 vertical:
 
@@ -178,7 +178,7 @@ OUTPUT: High-quality 9:16 vertical testimonial card"""
     def generate_urgency_prompt(self, hook_data: HookData) -> str:
         """Generate urgency-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["urgency"]
-        bg = random.choice(config["backgrounds"])
+        bg = config["background"]
         
         return f"""Urgency/scarcity alert, 9:16 vertical:
 
@@ -202,7 +202,7 @@ OUTPUT: High-quality 9:16 vertical urgency image"""
     def generate_question_prompt(self, hook_data: HookData) -> str:
         """Generate question-style prompt"""
         config = CREATIVE_STYLE_CONFIGS["question"]
-        bg = random.choice(config["backgrounds"])
+        bg = config["background"]
         
         return f"""Provocative question card, 9:16 vertical:
 
