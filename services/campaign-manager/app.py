@@ -51,7 +51,7 @@ class CampaignManagerService:
                 "name": f"Meta Ads AI Agent - {hook_data.name} - {self._get_timestamp()}",
                 "objective": "OUTCOME_TRAFFIC",
                 "status": "ACTIVE",
-                "special_ad_categories": [],
+                "special_ad_categories": ["NONE"],
                 "access_token": self.fb_access_token
             }
             
