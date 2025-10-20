@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 # Add parent directory to path for shared models
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from shared_models_updated import HookData, CreativeAsset, CreativeType, CREATIVE_STYLE_CONFIGS
+from shared_models import HookData, CreativeAsset, CreativeType, CREATIVE_STYLE_CONFIGS
 
 app = FastAPI(title="Image Generator Service - Multi-Style")
 
