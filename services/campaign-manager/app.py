@@ -82,7 +82,6 @@ class CampaignManagerService:
                 "optimization_goal": "LINK_CLICKS",
                 "bid_strategy": "LOWEST_COST_WITHOUT_CAP",
                 "targeting": str(TARGETING_SPEC),
-                "promoted_object": str({"link": LANDING_PAGE_URL}),
                 "status": "ACTIVE",
                 "access_token": self.fb_access_token
             }
